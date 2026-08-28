@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>African Payments Insights — Decoding Africa's $1.4 Trillion Digital Rails</title>
+  <meta name="description" content="Ground-level fintech intelligence, infrastructure analysis, and regulatory breakdowns for founders, investors, and operators across African payments." />
+  <link rel="icon" href="assets/logo.jpeg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav">
+      <a href="index.html" class="nav-brand">
+        <img src="assets/logo.jpeg" alt="African Payments Insights logo" />
+        African Payments Insights
+      </a>
+      <button class="nav-toggle" aria-label="Toggle navigation">☰</button>
+      <div class="nav-links">
+        <a href="index.html" data-page="index.html">Home</a>
+        <a href="category.html?cat=infrastructure" data-page="category.html">Articles</a>
+        <a href="posts.html" data-page="posts.html">Posts</a>
+        <a href="category.html?cat=market-profiles">Market Profiles</a>
+        <a href="glossary.html" data-page="glossary.html">Glossary</a>
+        <a href="about.html" data-page="about.html">About</a>
+        <a href="#subscribe" class="nav-cta">Subscribe</a>
+      </div>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <div class="hero-eyebrow">Making sense of Africa's changing payment rails</div>
+      <h1>Decoding Africa's <span class="stat">$1.4 Trillion</span> Digital Rails.</h1>
+      <p class="hero-sub">Weekly deep-dives decoding mobile money, B2B merchant digitization, cross-border settlement systems, and regulatory shifts across Africa's 54 markets. Built for founders, investors, and operators.</p>
+      <form class="hero-form" id="subscribe" onsubmit="event.preventDefault(); this.querySelector('button').textContent='Joined ✓';">
+        <input type="email" placeholder="Enter your email address..." required />
+        <button type="submit">Join the Network →</button>
+      </form>
+      <p class="hero-proof">Joined by fintech leads, VC partners, and policy analysts at Africa's leading payment companies.</p>
+    </div>
+    <div class="ticker-wrap">
+      <div class="ticker" id="ticker"></div>
+    </div>
+  </section>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="section-heading">
+          <h2>Three pillars of focus</h2>
+        </div>
+        <div class="pillars">
+          <div class="pillar-card">
+            <span class="pillar-icon">🌐</span>
+            <h3>Infrastructure &amp; Switches</h3>
+            <p>We look past consumer apps to analyze the core rails: PAPSS, national instant payment switches, open banking APIs, and the real-time settlement networks changing how money moves.</p>
+          </div>
+          <div class="pillar-card">
+            <span class="pillar-icon">🤝</span>
+            <h3>Merchant &amp; B2B Digitization</h3>
+            <p>P2P transfers are mature. The real battle is offline. We dissect agent networks, informal retail supply chains, and B2B software solutions digitizing Africa's cash economy.</p>
+          </div>
+          <div class="pillar-card">
+            <span class="pillar-icon">🪙</span>
+            <h3>Cross-Border &amp; Web3</h3>
+            <p>Devaluing currencies and FX friction are driving a silent revolution. We monitor how stablecoins, liquidity marketplaces, and regional switches are building alternative trade pathways.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="rail-divider"></div>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-heading">
+          <h2>Featured insight</h2>
+        </div>
+        <div id="featured-slot"></div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:0;">
+      <div class="container">
+        <div class="section-heading">
+          <h2>Latest intelligence</h2>
+          <a class="see-all" href="category.html?cat=infrastructure">Browse all articles →</a>
+        </div>
+        <div class="article-grid" id="latest-grid"></div>
+      </div>
+    </section>
+
+    <div class="rail-divider"></div>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-heading">
+          <h2>The numbers behind the story</h2>
+        </div>
+        <div class="stat-strip">
+          <div class="stat-box"><strong>$1.4T</strong><span>Annual Mobile Money Volume</span></div>
+          <div class="stat-box"><strong>63.5%</strong><span>USSD Dominance by Volume</span></div>
+          <div class="stat-box"><strong>52.5%</strong><span>Bill Pay Share of Transactions</span></div>
+          <div class="stat-box"><strong>+10%</strong><span>Intra-African Flows, YoY</span></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="rail-divider"></div>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-heading">
+          <h2>From the network</h2>
+          <a class="see-all" href="posts.html">See all posts →</a>
+        </div>
+        <div class="post-feed" id="home-posts-feed"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">African Payments Insights</div>
+        <div class="footer-links">
+          <a href="index.html">Home</a>
+          <a href="category.html?cat=infrastructure">Articles</a>
+          <a href="posts.html">Posts</a>
+          <a href="glossary.html">Glossary</a>
+          <a href="about.html">About &amp; Advisory</a>
+        </div>
+      </div>
+      <p>© 2026 African Payments Insights. Ground-level fintech intelligence for founders, investors, and operators.</p>
+      <p><a href="admin/login.html" class="footer-admin-link">Admin login</a></p>
+    </div>
+  </footer>
+
+  <script src="js/data-store.js"></script>
+  <script src="js/render.js"></script>
+  <script>
+    document.getElementById("ticker").innerHTML = APIRender.buildTicker();
+
+    const all = APIStore.getAll();
+    const featured = APIStore.getFeatured();
+    const featuredSlot = document.getElementById("featured-slot");
+    featuredSlot.innerHTML = featured.length
+      ? APIRender.featuredCard(featured[0])
+      : APIRender.emptyState("No featured article yet. Publish one from the admin dashboard and check the \"Feature this article\" box.");
+
+    const latestGrid = document.getElementById("latest-grid");
+    const latest = all.filter((a) => !featured.length || a.id !== featured[0].id).slice(0, 6);
+    latestGrid.innerHTML = latest.length
+      ? latest.map(APIRender.articleCard).join("")
+      : APIRender.emptyState("No articles published yet. Head to the admin dashboard to publish your first story.");
+
+    const homePosts = APIStore.getAllPosts().slice(0, 3);
+    document.getElementById("home-posts-feed").innerHTML = homePosts.length
+      ? homePosts.map(APIRender.postCard).join("")
+      : APIRender.emptyState("No posts yet. Publish one from the admin dashboard.");
+  </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title id="page-title">Articles — African Payments Insights</title>
+  <link rel="icon" href="assets/logo.jpeg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav">
+      <a href="index.html" class="nav-brand">
+        <img src="assets/logo.jpeg" alt="African Payments Insights logo" />
+        African Payments Insights
+      </a>
+      <button class="nav-toggle" aria-label="Toggle navigation">☰</button>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="category.html?cat=infrastructure" data-page="category.html">Articles</a>
+        <a href="posts.html" data-page="posts.html">Posts</a>
+        <a href="category.html?cat=market-profiles">Market Profiles</a>
+        <a href="glossary.html">Glossary</a>
+        <a href="about.html">About</a>
+        <a href="index.html#subscribe" class="nav-cta">Subscribe</a>
+      </div>
+    </nav>
+  </header>
+
+  <section class="category-banner">
+    <div class="container">
+      <div class="hero-eyebrow" style="margin-bottom:10px;">Category</div>
+      <h1 id="cat-title">All Articles</h1>
+      <p id="cat-intro"></p>
+    </div>
+  </section>
+
+  <main class="section">
+    <div class="container">
+      <div class="section-heading">
+        <h2 id="cat-count">Articles</h2>
+        <div class="footer-links" id="cat-filters" style="gap:14px;"></div>
+      </div>
+      <div class="article-grid" id="cat-grid"></div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">African Payments Insights</div>
+        <div class="footer-links">
+          <a href="index.html">Home</a>
+          <a href="category.html?cat=infrastructure">Articles</a>
+          <a href="posts.html">Posts</a>
+          <a href="glossary.html">Glossary</a>
+          <a href="about.html">About &amp; Advisory</a>
+        </div>
+      </div>
+      <p>© 2026 African Payments Insights. Ground-level fintech intelligence for founders, investors, and operators.</p>
+      <p><a href="admin/login.html" class="footer-admin-link">Admin login</a></p>
+    </div>
+  </footer>
+
+  <script src="js/data-store.js"></script>
+  <script src="js/render.js"></script>
+  <script>
+    const CATEGORY_INTROS = {
+      "infrastructure": "Beyond the user-facing app interfaces lies the actual plumbing of African commerce. We track the deployment of interoperable digital public infrastructure (DPI), real-time clearing rails, and national payment switches — from South Africa's fast-growing PayShap system to national settlement switches — and how hard infrastructure is systematically reducing cash dependence.",
+      "merchant-b2b": "Transactional inclusion is solved; now comes the battle for offline merchant acquisition. Over 90% of transactions in Sub-Saharan Africa remain cash-dominant, presenting a multi-billion dollar opportunity to digitize informal B2B supply chains, spaza shops, and open markets. Here we profile the software, POS systems, agency banking models, and alternative credit scoring networks capturing physical cash flows.",
+      "crossborder-web3": "Moving money between African nations is historically slower and more expensive than sending it globally. This category analyzes the emerging mechanisms bypassing legacy correspondent bank networks — from the Pan-African Payment and Settlement System (PAPSS) to stablecoins as corporate B2B treasury tools and the AfCFTA's push toward regional-currency settlement.",
+      "market-profiles": "Deep dives into specific national and regional payment landscapes — the regulatory quirks, competitive dynamics, and infrastructure choices that make each African market its own case study.",
+      "policy": "Regulatory shifts, central bank initiatives, and policy frameworks shaping how payments, credit, and digital assets are governed across African markets.",
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const cat = params.get("cat");
+    const catMeta = APIStore.CATEGORIES.find((c) => c.slug === cat);
+
+    document.getElementById("cat-title").textContent = catMeta ? `${catMeta.icon} ${catMeta.label}` : "All Articles";
+    document.title = (catMeta ? catMeta.label : "All Articles") + " — African Payments Insights";
+    document.getElementById("cat-intro").textContent = catMeta
+      ? CATEGORY_INTROS[catMeta.slug]
+      : "Every deep-dive published on African Payments Insights, newest first.";
+
+    // Filter pills for jumping between categories
+    const filterWrap = document.getElementById("cat-filters");
+    filterWrap.innerHTML = APIStore.CATEGORIES.map(
+      (c) => `<a href="category.html?cat=${c.slug}" style="${c.slug === cat ? 'color:#2a9d8f;font-weight:700;' : ''}">${c.icon} ${c.label}</a>`
+    ).join("");
+
+    const articles = catMeta ? APIStore.getByCategory(cat) : APIStore.getAll();
+    document.getElementById("cat-count").textContent = `${articles.length} article${articles.length === 1 ? "" : "s"}`;
+    document.getElementById("cat-grid").innerHTML = articles.length
+      ? articles.map(APIRender.articleCard).join("")
+      : APIRender.emptyState("No articles in this category yet. Check back soon, or publish one from the admin dashboard.");
+  </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — African Payments Insights</title>
+  <link rel="icon" href="../assets/logo.jpeg" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/admin.css" />
+</head>
+<body>
+
+  <header class="admin-header">
+    <div class="container">
+      <div class="admin-header-brand">
+        <img src="../assets/logo.jpeg" alt="logo" />
+        African Payments Insights — Admin
+      </div>
+      <div class="admin-header-actions">
+        <a href="../index.html" class="btn btn-outline" style="border-color:#fff;color:#fff;">View site</a>
+        <button id="logout-btn" class="btn" style="background:transparent;border:1px solid #e76f51;color:#e76f51;">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-shell">
+    <div class="container">
+      <div id="status-banner" class="status-banner" hidden></div>
+
+      <!-- ============ ARTICLES ============ -->
+      <h2 class="admin-section-title">📰 Articles</h2>
+      <p class="admin-section-sub">Long-form deep-dives — these show up on the homepage grid, category pages, and get their own article page.</p>
+
+      <div class="admin-grid">
+        <section class="admin-panel">
+          <h2 id="form-title">Publish a new article</h2>
+          <p class="panel-sub">Fill this in and it goes live on the public site immediately.</p>
+
+          <form id="article-form">
+            <input type="hidden" id="article-id" />
+
+            <div class="form-row">
+              <label for="title">Title</label>
+              <input type="text" id="title" required placeholder="e.g. The Definitive Map of Instant Payment Schemes in Africa" />
+            </div>
+
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label for="category">Category</label>
+                <select id="category" required></select>
+              </div>
+              <div class="form-row">
+                <label for="author">Author</label>
+                <input type="text" id="author" value="Editorial Team" required />
+              </div>
+            </div>
+
+            <div class="form-row-inline">
+              <div class="form-row">
+                <label for="date">Publish date</label>
+                <input type="text" id="date" placeholder="YYYY-MM-DD" required />
+              </div>
+              <div class="form-row">
+                <label for="readTime">Read time (minutes)</label>
+                <input type="number" id="readTime" min="1" max="60" value="5" required />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label for="excerpt">Excerpt (shown on cards)</label>
+              <textarea id="excerpt" rows="2" required placeholder="One or two sentences summarizing the piece."></textarea>
+            </div>
+
+            <div class="form-row">
+              <label for="body">Full article body</label>
+              <div class="form-hint">
+                Simple formatting is supported: start a line with <code>## </code> for a subheading,
+                <code>- </code> for a bullet point, and wrap text in <code>**double asterisks**</code> for bold.
+                Leave a blank line between paragraphs.
+              </div>
+              <textarea id="body" rows="14" required placeholder="## The hook&#10;Write your opening paragraph here...&#10;&#10;## Next section&#10;- A key point&#10;- Another key point"></textarea>
+            </div>
+
+            <div class="form-row form-checkbox">
+              <input type="checkbox" id="featured" />
+              <label for="featured" style="margin:0;">Feature this article (shows in the homepage Featured Insight slot)</label>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Publish article</button>
+              <button type="button" id="cancel-edit-btn" class="btn btn-outline" hidden>Cancel edit</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="admin-panel">
+          <h2>Manage articles</h2>
+          <p class="panel-sub" id="article-count">Loading…</p>
+          <div id="admin-list"></div>
+        </section>
+      </div>
+
+      <!-- ============ POSTS ============ -->
+      <div class="admin-section-divider">
+        <h2 class="admin-section-title">💬 Posts</h2>
+        <p class="admin-section-sub">Short-form updates — like the network shares you'd see on LinkedIn. A quick take plus an optional link out to the original source.</p>
+
+        <div class="admin-grid">
+          <section class="admin-panel">
+            <h2 id="post-form-title">Publish a new post</h2>
+            <p class="panel-sub">Write your own short take. If you're sharing something you saw elsewhere, link out to it — don't paste in someone else's post text.</p>
+
+            <form id="post-form">
+              <input type="hidden" id="post-id" />
+
+              <div class="form-row-inline">
+                <div class="form-row">
+                  <label for="post-author">Author name</label>
+                  <input type="text" id="post-author" value="African Payments Insights" required />
+                </div>
+                <div class="form-row">
+                  <label for="post-role">Role / handle</label>
+                  <input type="text" id="post-role" value="Editorial Team" placeholder="e.g. Editorial Team" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <label for="post-date">Date</label>
+                <input type="text" id="post-date" placeholder="YYYY-MM-DD" required />
+              </div>
+
+              <div class="form-row">
+                <label for="post-body">Post text</label>
+                <div class="form-hint">Keep it short — a sentence or two, like a real LinkedIn update. Plain text only (line breaks are kept, no markdown needed here).</div>
+                <textarea id="post-body" rows="5" required placeholder="Share your take here..."></textarea>
+              </div>
+
+              <div class="form-row-inline">
+                <div class="form-row">
+                  <label for="post-source-url">Source link (optional)</label>
+                  <input type="text" id="post-source-url" placeholder="https://www.linkedin.com/posts/..." />
+                </div>
+                <div class="form-row">
+                  <label for="post-source-label">Link label (optional)</label>
+                  <input type="text" id="post-source-label" placeholder="View original post on LinkedIn" />
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Publish post</button>
+                <button type="button" id="cancel-post-edit-btn" class="btn btn-outline" hidden>Cancel edit</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="admin-panel">
+            <h2>Manage posts</h2>
+            <p class="panel-sub" id="post-count">Loading…</p>
+            <div id="admin-post-list"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/data-store.js"></script>
+  <script src="../js/render.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/admin.js"></script>
+</body>
+</html>

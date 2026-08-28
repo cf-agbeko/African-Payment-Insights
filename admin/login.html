@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login — African Payments Insights</title>
+  <link rel="icon" href="../assets/logo.jpeg" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/admin.css" />
+</head>
+<body class="admin-body">
+
+  <div class="login-card">
+    <img src="../assets/logo.jpeg" alt="African Payments Insights logo" class="login-logo" />
+    <h1>Admin Login</h1>
+    <p class="small-note mt-0">Only the editorial team publishes here. Enter the admin passphrase to continue.</p>
+    <form id="login-form">
+      <label for="passphrase">Passphrase</label>
+      <input type="password" id="passphrase" placeholder="••••••••••••" required autofocus />
+      <button type="submit" class="btn btn-primary" style="width:100%;">Log in</button>
+    </form>
+    <p id="login-error" class="error-text" hidden>That passphrase isn't right. Try again.</p>
+    <p class="small-note" style="margin-top:22px;">
+      <a href="../index.html" style="color:#2a9d8f; font-weight:700;">← Back to the site</a>
+    </p>
+  </div>
+
+  <script src="../js/data-store.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    if (APIAuth.isLoggedIn()) {
+      window.location.href = "dashboard.html";
+    }
+    document.getElementById("login-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const value = document.getElementById("passphrase").value;
+      if (APIAuth.login(value)) {
+        window.location.href = "dashboard.html";
+      } else {
+        document.getElementById("login-error").hidden = false;
+      }
+    });
+  </script>
+</body>
+</html>

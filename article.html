@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title id="page-title">Article — African Payments Insights</title>
+  <link rel="icon" href="assets/logo.jpeg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav">
+      <a href="index.html" class="nav-brand">
+        <img src="assets/logo.jpeg" alt="African Payments Insights logo" />
+        African Payments Insights
+      </a>
+      <button class="nav-toggle" aria-label="Toggle navigation">☰</button>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="category.html?cat=infrastructure">Articles</a>
+        <a href="posts.html" data-page="posts.html">Posts</a>
+        <a href="category.html?cat=market-profiles">Market Profiles</a>
+        <a href="glossary.html">Glossary</a>
+        <a href="about.html">About</a>
+        <a href="index.html#subscribe" class="nav-cta">Subscribe</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container" id="article-root">
+    <!-- Filled by js/render.js + inline script below -->
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">African Payments Insights</div>
+        <div class="footer-links">
+          <a href="index.html">Home</a>
+          <a href="category.html?cat=infrastructure">Articles</a>
+          <a href="posts.html">Posts</a>
+          <a href="glossary.html">Glossary</a>
+          <a href="about.html">About &amp; Advisory</a>
+        </div>
+      </div>
+      <p>© 2026 African Payments Insights. Ground-level fintech intelligence for founders, investors, and operators.</p>
+      <p><a href="admin/login.html" class="footer-admin-link">Admin login</a></p>
+    </div>
+  </footer>
+
+  <script src="js/data-store.js"></script>
+  <script src="js/render.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    const article = id ? APIStore.getById(id) : null;
+    const root = document.getElementById("article-root");
+
+    if (!article) {
+      root.innerHTML = `
+        <div class="section">
+          <div class="empty-state">
+            <h2 class="mt-0">Article not found</h2>
+            <p>This story may have been unpublished or the link is out of date.</p>
+            <a class="btn btn-primary" href="index.html">Back to homepage</a>
+          </div>
+        </div>`;
+    } else {
+      document.title = article.title + " — African Payments Insights";
+      root.innerHTML = `
+        <article class="article-header">
+          <span class="cat-pill cat-${article.category}">${APIStore.categoryIcon(article.category)} ${APIStore.categoryLabel(article.category)}</span>
+          <h1>${APIRender.escapeHtml(article.title)}</h1>
+          <div class="byline">
+            <span>By ${APIRender.escapeHtml(article.author)}</span>
+            <span>&middot;</span>
+            <span>${APIRender.formatDate(article.date)}</span>
+            <span>&middot;</span>
+            <span>${article.readTime} min read</span>
+          </div>
+        </article>
+        <div class="article-body">${APIRender.renderBody(article.body)}</div>
+        <div class="share-row">
+          <span>Found this useful?</span>
+          <a class="btn btn-outline" href="category.html?cat=${article.category}">More in ${APIStore.categoryLabel(article.category)} →</a>
+        </div>`;
+    }
+  </script>
+</body>
+</html>

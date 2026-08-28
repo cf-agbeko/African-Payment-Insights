@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Posts — African Payments Insights</title>
+  <link rel="icon" href="assets/logo.jpeg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav">
+      <a href="index.html" class="nav-brand">
+        <img src="assets/logo.jpeg" alt="African Payments Insights logo" />
+        African Payments Insights
+      </a>
+      <button class="nav-toggle" aria-label="Toggle navigation">☰</button>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="category.html?cat=infrastructure">Articles</a>
+        <a href="posts.html" data-page="posts.html">Posts</a>
+        <a href="glossary.html">Glossary</a>
+        <a href="about.html">About</a>
+        <a href="index.html#subscribe" class="nav-cta">Subscribe</a>
+      </div>
+    </nav>
+  </header>
+
+  <section class="category-banner">
+    <div class="container">
+      <div class="hero-eyebrow" style="margin-bottom:10px;">From the network</div>
+      <h1>Posts</h1>
+      <p>Short takes, shares, and things worth a second look from across the African payments world — quick reads between our full deep-dives.</p>
+    </div>
+  </section>
+
+  <main class="section">
+    <div class="container">
+      <div class="post-feed" id="posts-feed"></div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">African Payments Insights</div>
+        <div class="footer-links">
+          <a href="index.html">Home</a>
+          <a href="category.html?cat=infrastructure">Articles</a>
+          <a href="posts.html">Posts</a>
+          <a href="glossary.html">Glossary</a>
+          <a href="about.html">About &amp; Advisory</a>
+        </div>
+      </div>
+      <p>© 2026 African Payments Insights. Ground-level fintech intelligence for founders, investors, and operators.</p>
+      <p><a href="admin/login.html" class="footer-admin-link">Admin login</a></p>
+    </div>
+  </footer>
+
+  <script src="js/data-store.js"></script>
+  <script src="js/render.js"></script>
+  <script>
+    const posts = APIStore.getAllPosts();
+    document.getElementById("posts-feed").innerHTML = posts.length
+      ? posts.map(APIRender.postCard).join("")
+      : APIRender.emptyState("No posts yet. Publish one from the admin dashboard.");
+  </script>
+</body>
+</html>
