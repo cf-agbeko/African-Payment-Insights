@@ -1,38 +1,4 @@
-/* =========================================================
-   AFRICAN PAYMENTS INSIGHTS — DATA STORE
-   Backed by Supabase (a free hosted Postgres database with a
-   REST API) instead of localStorage, so what gets published
-   is the SAME for every visitor, not just the admin's own
-   browser. Two tables: "articles" and "posts".
-
-   ===== ONE-TIME SETUP (do this before anything will work) =====
-   1. Create a free project at https://supabase.com
-   2. In the SQL editor, run the schema in supabase-schema.sql
-      (shipped alongside this file) to create the two tables.
-   3. In Project Settings -> API, copy your "Project URL" and
-      "anon public" key into SUPABASE_URL / SUPABASE_ANON_KEY
-      below.
-   4. Open the site — the first visitor to load it triggers a
-      one-time seed of the sample articles/posts into your new,
-      empty database.
-
-   ===== SECURITY NOTE (read this) =====
-   There is still no real server here, so the admin login in
-   auth.js is still just a convenience lock on the UI (see the
-   note in that file). The RLS (Row Level Security) policies in
-   supabase-schema.sql allow anyone holding the public anon key
-   to read AND write both tables — which is necessary, because
-   nothing server-side can check who's "the admin". The anon key
-   below is meant to be public (it ships in your front-end JS no
-   matter what), so this is the same trust model as before: the
-   login screen stops casual visitors, not a determined one. If
-   you want writes actually locked down, that means real
-   server-side auth (Supabase Auth + per-user RLS policies) —
-   a bigger change than this file, ask if you want that next.
-   ========================================================= */
-
 const APIStore = (function () {
-  // ===== FILL THESE IN with your own Supabase project's values =====
   const SUPABASE_URL = "https://rpgwsladflioxwzhejxf.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_HnRcKH46GRle0F1gGh0aSQ_FoOdx0hF";
 
@@ -82,9 +48,6 @@ const APIStore = (function () {
       .replace(/\s+/g, "-")
       .replace(/-+/g, "-");
   }
-
-  /* ---------------- seed content (used only to populate a brand-new,
-     empty database the first time the site is opened) ---------------- */
 
   function seedArticles() {
     return [
@@ -210,11 +173,6 @@ const APIStore = (function () {
     ];
   }
 
-  /* ---------------- row <-> JS object mapping ----------------
-     Postgres columns are snake_case; the rest of the app (render.js,
-     admin.js, every page's inline script) keeps using the same
-     camelCase field names as before, so nothing else has to change. */
-
   function articleToRow(a) {
     return {
       id: a.id,
@@ -267,8 +225,6 @@ const APIStore = (function () {
     };
   }
 
-  /* ---------------- one-time seed of a brand-new database ---------------- */
-
   let seedChecked = false;
 
   async function ensureSeeded() {
@@ -301,8 +257,6 @@ const APIStore = (function () {
       if (error) console.error("APIStore: failed to seed posts", error);
     }
   }
-
-  /* ---------------- Articles API (all async now — awaits a network call) ---------------- */
 
   async function getAll() {
     await ensureSeeded();

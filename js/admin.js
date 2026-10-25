@@ -1,13 +1,3 @@
-/* =========================================================
-   AFRICAN PAYMENTS INSIGHTS — ADMIN DASHBOARD LOGIC
-   Handles both content types: Articles (long-form) and
-   Posts (short-form, LinkedIn-style updates).
-
-   All data calls now go through Supabase (see js/data-store.js),
-   so every read/write here is async — each one awaits a network
-   round trip instead of a synchronous localStorage read.
-   ========================================================= */
-
 APIAuth.requireLogin("login.html");
 
 function todayISO() {

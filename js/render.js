@@ -97,11 +97,6 @@ const APIRender = (function () {
       </a>`;
   }
 
-  /**
-   * Renders a short-form, LinkedIn-style update: avatar initials,
-   * author + role, timestamp, plain body text, and an optional
-   * "view source" link card if the post points out to an external URL.
-   */
   function postCard(post) {
     const sourceBlock = post.sourceUrl
       ? `<a class="post-source" href="${escapeHtml(post.sourceUrl)}" target="_blank" rel="noopener noreferrer">
@@ -145,11 +140,6 @@ const APIRender = (function () {
     });
   }
 
-  /**
-   * Builds the scrolling ticker from what's actually published on the
-   * site right now (real counts from the data store), rather than
-   * fixed placeholder marketing figures.
-   */
   async function buildTicker() {
     const articles = await APIStore.getAll();
     const posts = await APIStore.getAllPosts();
