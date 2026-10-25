@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Posts — African Payments Insights</title>
+  <title>Posts | African Payments Insights</title>
   <link rel="icon" href="assets/logo.jpeg" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -22,7 +22,6 @@
         <a href="posts.html" data-page="posts.html">Posts</a>
         <a href="glossary.html">Glossary</a>
         <a href="about.html">About</a>
-        <a href="index.html#subscribe" class="nav-cta">Subscribe</a>
       </div>
     </nav>
   </header>
@@ -58,13 +57,16 @@
     </div>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/data-store.js"></script>
   <script src="js/render.js"></script>
   <script>
-    const posts = APIStore.getAllPosts();
-    document.getElementById("posts-feed").innerHTML = posts.length
-      ? posts.map(APIRender.postCard).join("")
-      : APIRender.emptyState("No posts yet. Publish one from the admin dashboard.");
+    (async function () {
+      const posts = await APIStore.getAllPosts();
+      document.getElementById("posts-feed").innerHTML = posts.length
+        ? posts.map(APIRender.postCard).join("")
+        : APIRender.emptyState("No posts yet. Publish one from the admin dashboard.");
+    })();
   </script>
 </body>
 </html>

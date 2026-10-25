@@ -1,20 +1,60 @@
 /* =========================================================
    AFRICAN PAYMENTS INSIGHTS — DATA STORE
-   Two content types live in localStorage:
-     - "api_articles" : long-form articles
-     - "api_posts"    : short-form, LinkedIn-style updates with an
-                        optional link out to an external source
+   Backed by Supabase (a free hosted Postgres database with a
+   REST API) instead of localStorage, so what gets published
+   is the SAME for every visitor, not just the admin's own
+   browser. Two tables: "articles" and "posts".
 
-   NOTE ON STORAGE: this is a static, front-end-only site with
-   no server, so "the database" is the visitor's own browser
-   (localStorage). That is why the admin gate in auth.js is a
-   convenience lock, not real security — see the note there.
+   ===== ONE-TIME SETUP (do this before anything will work) =====
+   1. Create a free project at https://supabase.com
+   2. In the SQL editor, run the schema in supabase-schema.sql
+      (shipped alongside this file) to create the two tables.
+   3. In Project Settings -> API, copy your "Project URL" and
+      "anon public" key into SUPABASE_URL / SUPABASE_ANON_KEY
+      below.
+   4. Open the site — the first visitor to load it triggers a
+      one-time seed of the sample articles/posts into your new,
+      empty database.
+
+   ===== SECURITY NOTE (read this) =====
+   There is still no real server here, so the admin login in
+   auth.js is still just a convenience lock on the UI (see the
+   note in that file). The RLS (Row Level Security) policies in
+   supabase-schema.sql allow anyone holding the public anon key
+   to read AND write both tables — which is necessary, because
+   nothing server-side can check who's "the admin". The anon key
+   below is meant to be public (it ships in your front-end JS no
+   matter what), so this is the same trust model as before: the
+   login screen stops casual visitors, not a determined one. If
+   you want writes actually locked down, that means real
+   server-side auth (Supabase Auth + per-user RLS policies) —
+   a bigger change than this file, ask if you want that next.
    ========================================================= */
 
 const APIStore = (function () {
-  const ARTICLES_KEY = "api_articles";
-  const POSTS_KEY = "api_posts";
-  const SEED_FLAG_KEY = "api_seeded_v2";
+  // ===== FILL THESE IN with your own Supabase project's values =====
+  const SUPABASE_URL = "https://rpgwsladflioxwzhejxf.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_HnRcKH46GRle0F1gGh0aSQ_FoOdx0hF";
+
+  let supabase = null;
+  function client() {
+    if (supabase) return supabase;
+    if (typeof window === "undefined" || !window.supabase) {
+      throw new Error(
+        "Supabase client library not loaded — make sure the <script> tag for " +
+          "@supabase/supabase-js is included BEFORE js/data-store.js on this page."
+      );
+    }
+    if (SUPABASE_URL.includes("YOUR-PROJECT-REF") || SUPABASE_ANON_KEY.includes("YOUR-ANON-PUBLIC-KEY")) {
+      throw new Error(
+        "Supabase isn't configured yet — open js/data-store.js and replace " +
+          "SUPABASE_URL and SUPABASE_ANON_KEY with your own project's values " +
+          "(Project Settings -> API in the Supabase dashboard)."
+      );
+    }
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    return supabase;
+  }
 
   const CATEGORIES = [
     { slug: "infrastructure", label: "Infrastructure & Switches", icon: "🌐" },
@@ -43,7 +83,8 @@ const APIStore = (function () {
       .replace(/-+/g, "-");
   }
 
-  /* ---------------- ARTICLES ---------------- */
+  /* ---------------- seed content (used only to populate a brand-new,
+     empty database the first time the site is opened) ---------------- */
 
   function seedArticles() {
     return [
@@ -153,8 +194,6 @@ const APIStore = (function () {
     ];
   }
 
-  /* ---------------- POSTS (short-form, LinkedIn-style) ---------------- */
-
   function seedPosts() {
     return [
       {
@@ -171,94 +210,178 @@ const APIStore = (function () {
     ];
   }
 
-  function readAll(key) {
-    try {
-      const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : [];
-    } catch (e) {
-      console.error("APIStore: failed to read " + key, e);
+  /* ---------------- row <-> JS object mapping ----------------
+     Postgres columns are snake_case; the rest of the app (render.js,
+     admin.js, every page's inline script) keeps using the same
+     camelCase field names as before, so nothing else has to change. */
+
+  function articleToRow(a) {
+    return {
+      id: a.id,
+      title: a.title,
+      category: a.category,
+      author: a.author,
+      date: a.date,
+      read_time: a.readTime,
+      featured: !!a.featured,
+      excerpt: a.excerpt,
+      body: a.body,
+    };
+  }
+
+  function rowToArticle(r) {
+    return {
+      id: r.id,
+      title: r.title,
+      category: r.category,
+      author: r.author,
+      date: r.date,
+      readTime: r.read_time,
+      featured: r.featured,
+      excerpt: r.excerpt,
+      body: r.body,
+    };
+  }
+
+  function postToRow(p) {
+    return {
+      id: p.id,
+      author_name: p.authorName,
+      author_role: p.authorRole || null,
+      date: p.date,
+      body: p.body,
+      source_url: p.sourceUrl || null,
+      source_label: p.sourceLabel || null,
+    };
+  }
+
+  function rowToPost(r) {
+    return {
+      id: r.id,
+      authorName: r.author_name,
+      authorRole: r.author_role,
+      date: r.date,
+      body: r.body,
+      sourceUrl: r.source_url,
+      sourceLabel: r.source_label,
+    };
+  }
+
+  /* ---------------- one-time seed of a brand-new database ---------------- */
+
+  let seedChecked = false;
+
+  async function ensureSeeded() {
+    if (seedChecked) return;
+    seedChecked = true;
+
+    const sb = client();
+
+    const { count: articleCount, error: articleCountErr } = await sb
+      .from("articles")
+      .select("id", { count: "exact", head: true });
+    if (articleCountErr) {
+      console.error("APIStore: could not check articles table", articleCountErr);
+      return;
+    }
+    if (!articleCount) {
+      const { error } = await sb.from("articles").insert(seedArticles().map(articleToRow));
+      if (error) console.error("APIStore: failed to seed articles", error);
+    }
+
+    const { count: postCount, error: postCountErr } = await sb
+      .from("posts")
+      .select("id", { count: "exact", head: true });
+    if (postCountErr) {
+      console.error("APIStore: could not check posts table", postCountErr);
+      return;
+    }
+    if (!postCount) {
+      const { error } = await sb.from("posts").insert(seedPosts().map(postToRow));
+      if (error) console.error("APIStore: failed to seed posts", error);
+    }
+  }
+
+  /* ---------------- Articles API (all async now — awaits a network call) ---------------- */
+
+  async function getAll() {
+    await ensureSeeded();
+    const { data, error } = await client().from("articles").select("*").order("date", { ascending: false });
+    if (error) {
+      console.error("APIStore: failed to load articles", error);
       return [];
     }
+    return data.map(rowToArticle);
   }
 
-  function writeAll(key, items) {
-    localStorage.setItem(key, JSON.stringify(items));
+  async function getById(id) {
+    const { data, error } = await client().from("articles").select("*").eq("id", id).maybeSingle();
+    if (error || !data) return null;
+    return rowToArticle(data);
   }
 
-  function ensureSeeded() {
-    if (!localStorage.getItem(SEED_FLAG_KEY)) {
-      writeAll(ARTICLES_KEY, seedArticles());
-      writeAll(POSTS_KEY, seedPosts());
-      localStorage.setItem(SEED_FLAG_KEY, "true");
-    }
+  async function getByCategory(categorySlug) {
+    const all = await getAll();
+    return all.filter((a) => a.category === categorySlug);
   }
 
-  /* ---- Articles API ---- */
-
-  function getAll() {
-    ensureSeeded();
-    return readAll(ARTICLES_KEY).sort((a, b) => new Date(b.date) - new Date(a.date));
+  async function getFeatured() {
+    const all = await getAll();
+    return all.filter((a) => a.featured);
   }
 
-  function getById(id) {
-    return readAll(ARTICLES_KEY).find((a) => a.id === id) || null;
-  }
-
-  function getByCategory(categorySlug) {
-    return getAll().filter((a) => a.category === categorySlug);
-  }
-
-  function getFeatured() {
-    return getAll().filter((a) => a.featured);
-  }
-
-  function save(article) {
-    const all = readAll(ARTICLES_KEY);
+  async function save(article) {
     if (!article.id) {
       article.id = slugify(article.title) + "-" + Date.now().toString(36);
     }
-    const idx = all.findIndex((a) => a.id === article.id);
-    if (idx > -1) all[idx] = article;
-    else all.push(article);
-    writeAll(ARTICLES_KEY, all);
+    const { error } = await client().from("articles").upsert(articleToRow(article));
+    if (error) console.error("APIStore: failed to save article", error);
     return article;
   }
 
-  function remove(id) {
-    writeAll(ARTICLES_KEY, readAll(ARTICLES_KEY).filter((a) => a.id !== id));
+  async function remove(id) {
+    const { error } = await client().from("articles").delete().eq("id", id);
+    if (error) console.error("APIStore: failed to delete article", error);
   }
 
-  /* ---- Posts API ---- */
+  /* ---------------- Posts API ---------------- */
 
-  function getAllPosts() {
-    ensureSeeded();
-    return readAll(POSTS_KEY).sort((a, b) => new Date(b.date) - new Date(a.date));
+  async function getAllPosts() {
+    await ensureSeeded();
+    const { data, error } = await client().from("posts").select("*").order("date", { ascending: false });
+    if (error) {
+      console.error("APIStore: failed to load posts", error);
+      return [];
+    }
+    return data.map(rowToPost);
   }
 
-  function getPostById(id) {
-    return readAll(POSTS_KEY).find((p) => p.id === id) || null;
+  async function getPostById(id) {
+    const { data, error } = await client().from("posts").select("*").eq("id", id).maybeSingle();
+    if (error || !data) return null;
+    return rowToPost(data);
   }
 
-  function savePost(post) {
-    const all = readAll(POSTS_KEY);
+  async function savePost(post) {
     if (!post.id) {
       post.id = "post-" + Date.now().toString(36);
     }
-    const idx = all.findIndex((p) => p.id === post.id);
-    if (idx > -1) all[idx] = post;
-    else all.push(post);
-    writeAll(POSTS_KEY, all);
+    const { error } = await client().from("posts").upsert(postToRow(post));
+    if (error) console.error("APIStore: failed to save post", error);
     return post;
   }
 
-  function removePost(id) {
-    writeAll(POSTS_KEY, readAll(POSTS_KEY).filter((p) => p.id !== id));
+  async function removePost(id) {
+    const { error } = await client().from("posts").delete().eq("id", id);
+    if (error) console.error("APIStore: failed to delete post", error);
   }
 
-  function resetToSeed() {
-    writeAll(ARTICLES_KEY, seedArticles());
-    writeAll(POSTS_KEY, seedPosts());
-    localStorage.setItem(SEED_FLAG_KEY, "true");
+  async function resetToSeed() {
+    const sb = client();
+    await sb.from("articles").delete().neq("id", "__never__");
+    await sb.from("posts").delete().neq("id", "__never__");
+    await sb.from("articles").insert(seedArticles().map(articleToRow));
+    await sb.from("posts").insert(seedPosts().map(postToRow));
   }
 
   return {

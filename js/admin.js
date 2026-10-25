@@ -2,6 +2,10 @@
    AFRICAN PAYMENTS INSIGHTS — ADMIN DASHBOARD LOGIC
    Handles both content types: Articles (long-form) and
    Posts (short-form, LinkedIn-style updates).
+
+   All data calls now go through Supabase (see js/data-store.js),
+   so every read/write here is async — each one awaits a network
+   round trip instead of a synchronous localStorage read.
    ========================================================= */
 
 APIAuth.requireLogin("login.html");
@@ -54,8 +58,9 @@ function resetForm() {
   cancelEditBtn.hidden = true;
 }
 
-function renderList() {
-  const articles = APIStore.getAll();
+async function renderList() {
+  listWrap.innerHTML = `<div class="empty-state">Loading…</div>`;
+  const articles = await APIStore.getAll();
   countLabel.textContent = `${articles.length} article${articles.length === 1 ? "" : "s"} published`;
 
   if (!articles.length) {
@@ -83,20 +88,20 @@ function renderList() {
     btn.addEventListener("click", () => loadArticleIntoForm(btn.dataset.id));
   });
   listWrap.querySelectorAll(".delete-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const article = APIStore.getById(btn.dataset.id);
-      if (confirm(`Delete "${article.title}"? This can't be undone.`)) {
-        APIStore.remove(btn.dataset.id);
+    btn.addEventListener("click", async () => {
+      const article = await APIStore.getById(btn.dataset.id);
+      if (article && confirm(`Delete "${article.title}"? This can't be undone.`)) {
+        await APIStore.remove(btn.dataset.id);
         showStatus("Article deleted.");
-        renderList();
+        await renderList();
         if (idField.value === btn.dataset.id) resetForm();
       }
     });
   });
 }
 
-function loadArticleIntoForm(id) {
-  const a = APIStore.getById(id);
+async function loadArticleIntoForm(id) {
+  const a = await APIStore.getById(id);
   if (!a) return;
   idField.value = a.id;
   titleField.value = a.title;
@@ -113,7 +118,7 @@ function loadArticleIntoForm(id) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-form.addEventListener("submit", (e) => {
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const article = {
     id: idField.value || undefined,
@@ -127,10 +132,19 @@ form.addEventListener("submit", (e) => {
     featured: featuredField.checked,
   };
   const wasEdit = !!idField.value;
-  APIStore.save(article);
-  showStatus(wasEdit ? "Changes saved." : "Article published.");
-  resetForm();
-  renderList();
+  const submitBtn = form.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  try {
+    await APIStore.save(article);
+    showStatus(wasEdit ? "Changes saved." : "Article published.");
+    resetForm();
+    await renderList();
+  } catch (err) {
+    console.error(err);
+    showStatus("Something went wrong saving this article — check the console.");
+  } finally {
+    submitBtn.disabled = false;
+  }
 });
 
 cancelEditBtn.addEventListener("click", resetForm);
@@ -163,8 +177,9 @@ function resetPostForm() {
   cancelPostEditBtn.hidden = true;
 }
 
-function renderPostList() {
-  const posts = APIStore.getAllPosts();
+async function renderPostList() {
+  postListWrap.innerHTML = `<div class="empty-state">Loading…</div>`;
+  const posts = await APIStore.getAllPosts();
   postCountLabel.textContent = `${posts.length} post${posts.length === 1 ? "" : "s"} published`;
 
   if (!posts.length) {
@@ -192,20 +207,20 @@ function renderPostList() {
     btn.addEventListener("click", () => loadPostIntoForm(btn.dataset.id));
   });
   postListWrap.querySelectorAll(".delete-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const post = APIStore.getPostById(btn.dataset.id);
-      if (confirm(`Delete this post from ${post.authorName}? This can't be undone.`)) {
-        APIStore.removePost(btn.dataset.id);
+    btn.addEventListener("click", async () => {
+      const post = await APIStore.getPostById(btn.dataset.id);
+      if (post && confirm(`Delete this post from ${post.authorName}? This can't be undone.`)) {
+        await APIStore.removePost(btn.dataset.id);
         showStatus("Post deleted.");
-        renderPostList();
+        await renderPostList();
         if (postIdField.value === btn.dataset.id) resetPostForm();
       }
     });
   });
 }
 
-function loadPostIntoForm(id) {
-  const p = APIStore.getPostById(id);
+async function loadPostIntoForm(id) {
+  const p = await APIStore.getPostById(id);
   if (!p) return;
   postIdField.value = p.id;
   postAuthorField.value = p.authorName;
@@ -220,7 +235,7 @@ function loadPostIntoForm(id) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-postForm.addEventListener("submit", (e) => {
+postForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const post = {
     id: postIdField.value || undefined,
@@ -232,10 +247,19 @@ postForm.addEventListener("submit", (e) => {
     sourceLabel: postSourceLabelField.value.trim(),
   };
   const wasEdit = !!postIdField.value;
-  APIStore.savePost(post);
-  showStatus(wasEdit ? "Post changes saved." : "Post published.");
-  resetPostForm();
-  renderPostList();
+  const submitBtn = postForm.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  try {
+    await APIStore.savePost(post);
+    showStatus(wasEdit ? "Post changes saved." : "Post published.");
+    resetPostForm();
+    await renderPostList();
+  } catch (err) {
+    console.error(err);
+    showStatus("Something went wrong saving this post — check the console.");
+  } finally {
+    submitBtn.disabled = false;
+  }
 });
 
 cancelPostEditBtn.addEventListener("click", resetPostForm);
@@ -249,8 +273,10 @@ document.getElementById("logout-btn").addEventListener("click", () => {
   window.location.href = "login.html";
 });
 
-populateCategories();
-resetForm();
-renderList();
-resetPostForm();
-renderPostList();
+(async function bootstrap() {
+  populateCategories();
+  resetForm();
+  resetPostForm();
+  await renderList();
+  await renderPostList();
+})();

@@ -333,13 +333,12 @@ p { margin: 0 0 1em; }
 .pillar-card {
   background: #fff;
   border: 1px solid var(--line);
-  border-top: 4px solid var(--emerald);
+  border-top: 24px solid var(--emerald);
   border-radius: var(--radius);
   padding: 26px 24px;
 }
 .pillar-card:nth-child(2) { border-top-color: var(--terracotta); }
 .pillar-card:nth-child(3) { border-top-color: var(--navy); }
-.pillar-icon { font-size: 1.6rem; margin-bottom: 12px; display: block; }
 .pillar-card h3 { font-size: 1.08rem; margin-bottom: 8px; }
 .pillar-card p { color: var(--ink-soft); font-size: 0.92rem; margin: 0; }
 
@@ -458,33 +457,6 @@ p { margin: 0 0 1em; }
 .cat-pill.cat-market-profiles::before { background: var(--navy); }
 .cat-pill.cat-policy { color: #946200; }
 .cat-pill.cat-policy::before { background: #c98a00; }
-
-/* Stat strip */
-.stat-strip {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
-}
-.stat-box {
-  background: var(--navy);
-  color: #fff;
-  padding: 20px;
-  border-radius: var(--radius);
-  text-align: center;
-}
-.stat-box strong {
-  display: block;
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  color: var(--terracotta);
-}
-.stat-box span {
-  font-size: 0.78rem;
-  color: #b9c0d6;
-}
-@media (max-width: 780px) {
-  .stat-strip { grid-template-columns: repeat(2, 1fr); }
-}
 
 /* Category intro banner (used on category.html) */
 .category-banner {

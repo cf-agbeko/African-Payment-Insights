@@ -145,18 +145,32 @@ const APIRender = (function () {
     });
   }
 
-  function buildTicker() {
+  /**
+   * Builds the scrolling ticker from what's actually published on the
+   * site right now (real counts from the data store), rather than
+   * fixed placeholder marketing figures.
+   */
+  async function buildTicker() {
+    const articles = await APIStore.getAll();
+    const posts = await APIStore.getAllPosts();
+    const categoriesCovered = new Set(articles.map((a) => a.category)).size;
+    const totalReadMinutes = articles.reduce((sum, a) => sum + (a.readTime || 0), 0);
+    const latest = articles[0];
+
     const items = [
-      { label: "Annual Mobile Money Volume", value: "$1.4 Trillion" },
-      { label: "USSD Dominance by Volume", value: "63.5%" },
-      { label: "Bill Pay Share of Transactions", value: "52.5%" },
-      { label: "Intra-African Flows YoY", value: "+10%" },
-      { label: "Live Instant Payment Systems", value: "36 Schemes" },
+      { label: "Articles Published", value: String(articles.length) },
+      { label: "Categories Covered", value: String(categoriesCovered) },
+      { label: "Posts Shared", value: String(posts.length) },
+      { label: "Minutes of Reading, Total", value: String(totalReadMinutes) },
     ];
+    if (latest) {
+      items.push({ label: "Latest: " + latest.title, value: formatDate(latest.date) });
+    }
+
     // duplicate the list once so the CSS animation can loop seamlessly
     const doubled = items.concat(items);
     return doubled
-      .map((i) => `<span class="ticker-item"><strong>${i.value}</strong> ${i.label}</span>`)
+      .map((i) => `<span class="ticker-item"><strong>${escapeHtml(i.value)}</strong> ${escapeHtml(i.label)}</span>`)
       .join("");
   }
 
